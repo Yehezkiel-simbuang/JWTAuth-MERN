@@ -14,7 +14,11 @@ const userSchema = new mongoDB.Schema({
     password: {
         type: String,
         require: true
-    }
+    },
+    photourl: {
+        type: String,
+        default: 'https://img.freepik.com/premium-vector/man-avatar-profile-picture-vector-illustration_268834-538.jpg'
+    },
 }, { timestamps: true });
 
 const User = mongoDB.model('User', userSchema);

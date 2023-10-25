@@ -25,7 +25,7 @@ export const signInMiddleware = async (req, res, next) => {
             const validPass = bcryptjs.compareSync(password, valid.password);
             if (validPass) {
                 const token = jwt.sign({ id: valid._id }, process.env.JWT_PASS, { expiresIn: "2d" });
-                const { email, password, ...outRes } = valid._doc;
+                const { password, ...outRes } = valid._doc;
                 res.cookie('token', token, { httpOnly: true }).status(200).json(outRes);
             } else {
                 next(errorHandler(401, "Email or password incorrect"));
@@ -44,16 +44,16 @@ export const googleMiddleware = async (req, res, next) => {
         const valid = await User.findOne({ email });
         if (valid) {
             const token = jwt.sign({ id: valid._id }, process.env.JWT_PASS, { expiresIn: "2d" });
-            const { email, password, ...outRes } = valid._doc;
+            const { password, ...outRes } = valid._doc;
             res.cookie('token', token, { httpOnly: true }).status(200).json(outRes);
         } else {
             const pass = ((Math.random() * (10 ** 16)).toString(36));
             const encryptedPass = bcryptjs.hashSync(pass, 10);
             const username = req.body.name.split(" ").join("") + Math.random().toString().slice(-8);
-            const googleAuth = new User({ username, email: req.body.email, password: encryptedPass });
+            const googleAuth = new User({ username, email: req.body.email, password: encryptedPass, photourl: req.body.photourl });
             await googleAuth.save();
             const token = jwt.sign({ id: googleAuth._id }, process.env.JWT_PASS, { expiresIn: "2d" });
-            const { email, password, ...outRes } = valid._doc;
+            const { password, ...outRes } = googleAuth._doc;
             res.cookie('token', token, { httpOnly: true }).status(200).json(outRes);
         }
 
