@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   getDownloadURL,
   getStorage,
@@ -7,6 +7,13 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateStart,
+  updateSuccess,
+  updateFail,
+  signOut,
+} from "../redux/user/userSlice.js";
+
 export default function Profile() {
   const { currentUser } = useSelector((state) => state.user);
   const refFile = useRef(null);
@@ -14,6 +21,7 @@ export default function Profile() {
   const [imageError, setImageError] = useState(false);
   const [imageUpload, setImageUpload] = useState(0);
   const [formData, setFormData] = useState({});
+  const dispatch = useDispatch();
   console.log(formData);
 
   useEffect(() => {
@@ -43,10 +51,42 @@ export default function Profile() {
       }
     );
   };
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateStart);
+      const result = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await result.json();
+      if (data.success === false) {
+        dispatch(updateFail(data));
+        return;
+      }
+      dispatch(updateSuccess(data));
+    } catch (error) {
+      dispatch(updateFail(error));
+    }
+  };
+  const handleSignout = async () => {
+    try {
+      await fetch("/api/auth/sign-out");
+      dispatch(signOut());
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Profile</h1>
-      <form className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <input
           type="file"
           ref={refFile}
@@ -76,19 +116,28 @@ export default function Profile() {
           id="username"
           placeholder="Username"
           defaultValue={currentUser.username}
+          onChange={handleChange}
         ></input>
         <input
           className="bg-slate-100 rounded-lg p-3"
           id="email"
           placeholder="Email"
           defaultValue={currentUser.email}
+          onChange={handleChange}
         ></input>
         <input
           className="bg-slate-100 rounded-lg p-3"
           id="password"
           placeholder="Password"
+          onChange={handleChange}
         ></input>
+        <button className="bg-sky-900 text-white uppercase p-3 rounded-lg mx-16 mt-6">
+          Update
+        </button>
       </form>
+      <p className="mt-6 text-right hover:underline cursor-pointer text-red-700">
+        <span onClick={handleSignout}>Sign out</span>
+      </p>
     </div>
   );
 }

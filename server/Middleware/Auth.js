@@ -61,3 +61,11 @@ export const googleMiddleware = async (req, res, next) => {
         next(error);
     }
 }
+export const signoutMiddleware = (req, res, next) => {
+    try {
+        res.clearCookie('token').status(200).json('Signout success');
+    } catch (error) {
+        next(error)
+    }
+
+}
