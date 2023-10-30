@@ -15,14 +15,16 @@ import {
 } from "../redux/user/userSlice.js";
 
 export default function Profile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, updateLoading, updateError } = useSelector(
+    (state) => state.user
+  );
   const refFile = useRef(null);
   const [image, setImage] = useState(undefined);
   const [imageError, setImageError] = useState(false);
   const [imageUpload, setImageUpload] = useState(0);
   const [formData, setFormData] = useState({});
+  const [successful, setSuccessful] = useState(false);
   const dispatch = useDispatch();
-  console.log(formData);
 
   useEffect(() => {
     if (image) {
@@ -57,7 +59,7 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      dispatch(updateStart);
+      dispatch(updateStart());
       const result = await fetch(`/api/user/update/${currentUser._id}`, {
         method: "POST",
         headers: {
@@ -71,6 +73,7 @@ export default function Profile() {
         return;
       }
       dispatch(updateSuccess(data));
+      setSuccessful(true);
     } catch (error) {
       dispatch(updateFail(error));
     }
@@ -131,12 +134,21 @@ export default function Profile() {
           placeholder="Password"
           onChange={handleChange}
         ></input>
-        <button className="bg-sky-900 text-white uppercase p-3 rounded-lg mx-16 mt-6">
-          Update
+        <button
+          className="bg-sky-900 text-white uppercase p-3 rounded-lg mx-16 mt-6 disabled:opacity-70 hover:opacity-90"
+          disabled={updateLoading}
+        >
+          {updateLoading ? "Loading...." : "Update"}
         </button>
       </form>
       <p className="mt-6 text-right hover:underline cursor-pointer text-red-700">
         <span onClick={handleSignout}>Sign out</span>
+      </p>
+      <p className="mt-6 text-center text-red-700">
+        {updateError ? updateError.message || "Something went wrong" : ""}
+      </p>
+      <p className="mt-6 text-center text-green-700">
+        {successful && "Update successfuly"}
       </p>
     </div>
   );
