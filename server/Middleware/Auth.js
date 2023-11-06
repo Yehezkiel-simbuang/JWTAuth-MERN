@@ -82,14 +82,20 @@ export const signoutMiddleware = (req, res, next) => {
 };
 
 export const authenticate = (req, res, next) => {
-  const { token } = req.cookies.token;
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      console.log("test");
+      next(errorHandler(401, "Token Not Found"));
+      return;
+    }
 
-  if (!token) {
-    next(errorHandler(401, "Token Not Found"))
+    jwt.verify(token, process.env.JWT_PASS, (error, user) => {
+      if (error) next(errorHandler(401, "Token Invalid"));
+      res.status(200).json({ status: "Success" });
+    })
+  } catch (error) {
+    next(error)
   }
 
-  jwt.verify(token, process.env.JWT_PASS, (error, user) => {
-    if (error) next(errorHandler(401, "Token Invalid"));
-    res.status(200).json({ status: "Success" });
-  })
 }

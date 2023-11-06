@@ -7,10 +7,14 @@ export default function Home() {
   const { currentUser } = useSelector((state) => state.user);
   useEffect(() => {
     const verification = async () => {
-      const verif = await fetch("/api/auth/authenticate");
-      const data = await verif.json();
-      if (data.success == false && currentUser) {
-        dispatch(signOut());
+      try {
+        const verif = await fetch("/api/auth/authenticate");
+        const data = await verif.json();
+        if (data.success == false && currentUser) {
+          dispatch(signOut());
+        }
+      } catch (error) {
+        console.log("");
       }
     };
     verification();
