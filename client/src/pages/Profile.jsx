@@ -70,6 +70,8 @@ export default function Profile() {
       const data = await result.json();
       if (data.success === false) {
         dispatch(updateFail(data));
+        await fetch("/api/auth/sign-out");
+        dispatch(signOut());
         return;
       }
       dispatch(updateSuccess(data));

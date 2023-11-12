@@ -32,10 +32,10 @@ export const signInMiddleware = async (req, res, next) => {
     }
 
     const token = jwt.sign({ id: valid._id }, process.env.JWT_PASS, {
-      expiresIn: 15,
+      expiresIn: "2d",
     });
     const { password, ...outRes } = valid._doc;
-    res.cookie("token", token, { httpOnly: true, maxAge: 30000 }).status(200).json(outRes);
+    res.cookie("token", token, { httpOnly: true, maxAge: 2 * 24 * 3600000 }).status(200).json(outRes);
   } catch (error) {
     next(error);
   }
@@ -47,10 +47,10 @@ export const googleMiddleware = async (req, res, next) => {
     const valid = await User.findOne({ email });
     if (valid) {
       const token = jwt.sign({ id: valid._id }, process.env.JWT_PASS, {
-        expiresIn: 15,
+        expiresIn: "2d",
       });
       const { password, ...outRes } = valid._doc;
-      res.cookie("token", token, { httpOnly: true, maxAge: 30000 }).status(200).json(outRes);
+      res.cookie("token", token, { httpOnly: true, maxAge: 2 * 24 * 3600000 }).status(200).json(outRes);
     } else {
       const pass = (Math.random() * 10 ** 16).toString(36);
       const encryptedPass = bcryptjs.hashSync(pass, 10);
@@ -64,10 +64,10 @@ export const googleMiddleware = async (req, res, next) => {
       });
       await googleAuth.save();
       const token = jwt.sign({ id: googleAuth._id }, process.env.JWT_PASS, {
-        expiresIn: 15,
+        expiresIn: "2d",
       });
       const { password, ...outRes } = googleAuth._doc;
-      res.cookie("token", token, { httpOnly: true, maxAge: 30000 }).status(200).json(outRes);
+      res.cookie("token", token, { httpOnly: true, maxAge: 2 * 24 * 3600000 }).status(200).json(outRes);
     }
   } catch (error) {
     next(error);
@@ -81,21 +81,3 @@ export const signoutMiddleware = (req, res, next) => {
   }
 };
 
-export const authenticate = (req, res, next) => {
-  try {
-    const token = req.cookies.token;
-    if (!token) {
-      console.log("test");
-      next(errorHandler(401, "Token Not Found"));
-      return;
-    }
-
-    jwt.verify(token, process.env.JWT_PASS, (error, user) => {
-      if (error) next(errorHandler(401, "Token Invalid"));
-      res.status(200).json({ status: "Success" });
-    })
-  } catch (error) {
-    next(error)
-  }
-
-}
